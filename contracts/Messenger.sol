@@ -5,6 +5,7 @@ import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
 import {IERC20} from "@chainlink/contracts-ccip/src/v0.8/vendor/openzeppelin-solidity/v4.8.0/contracts/token/ERC20/IERC20.sol";
+import {Encoder} from "./lib/Encoder.sol";
 
 /**
  * THIS IS AN EXAMPLE CONTRACT THAT USES HARDCODED VALUES FOR CLARITY.
@@ -126,6 +127,14 @@ contract Messenger is CCIPReceiver {
         allowlistedSenders[_sender] = allowed;
     }
 
+    function sendBorrowMessage(uint64 destinationChainSelector, address receiver, uint8 operationType, address borrower, address vault, uint256 amount, address liquidator) public returns (bytes32 messageId) {
+      string memory data = Encoder.encode(operationType, borrower, vault, amount, liquidator);
+      bytes32 messageId = messanger.sendMessagePayLINK(destinationChainSelector, receiver, data);
+      require(messageId, "Message not sent!");
+
+      return messageId;
+    }
+
     /// @notice Sends data to receiver on the destination chain.
     /// @notice Pay for fees in LINK.
     /// @dev Assumes your contract has sufficient LINK.
@@ -232,6 +241,8 @@ contract Messenger is CCIPReceiver {
         return messageId;
     }
 
+    event DecodedMessage(uint8 operationType, address borrower, address vault, uint256 amount, address liquidator);
+
     /// handle a received message
     function _ccipReceive(
         Client.Any2EVMMessage memory any2EvmMessage
@@ -252,6 +263,17 @@ contract Messenger is CCIPReceiver {
             abi.decode(any2EvmMessage.sender, (address)), // abi-decoding of the sender address,
             abi.decode(any2EvmMessage.data, (string))
         );
+
+        uint8 operationType;
+        address borrower;
+        address vault;
+        uint256 amount;
+        address liquidator; 
+
+        (operationType, borrower, vault, amount, liquidator) = Encoder.decode(any2EvmMessage.data);
+
+        emit DecodedMessage(operationType, borrower, vault, amount, liquidator);
+
     }
 
     /// @notice Construct a CCIP message.

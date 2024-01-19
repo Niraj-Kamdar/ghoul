@@ -23,7 +23,7 @@ contract Vault is IVault {
     emit Withdrawn(token, amount);
   }
 
-  function approveBorrow(uint256 amount) public {
+  function borrow(uint256 amount) public {
     uint256 _totalCollateralBase;
     uint256 _totalDebtBase;
     uint256 _availableBorrowsBase;
