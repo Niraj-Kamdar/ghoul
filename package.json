@@ -41,6 +41,8 @@
     "typechain": "^8.1.0"
   },
   "dependencies": {
+    "@aave/core-v3": "^1.18.0",
+    "@aave/gho": "github:aave/gho-core",
     "@chainlink/contracts-ccip": "^0.7.3",
     "@chainlink/env-enc": "^1.0.5",
     "@openzeppelin/contracts": "^4.8.3",

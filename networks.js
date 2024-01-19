@@ -22,7 +22,7 @@ const networks = {
   sepolia: {
     url: process.env.SEPOLIA_RPC_URL || "THIS HAS NOT BEEN SET",
     gasPrice: undefined,
-    router: "0xd0daae2231e9cb96b94c8512223533293c3693bf",
+    router: "0x0bf3de8c5d3e8a2b34d2beeb17abfcebaf363a59",
     chainSelector: "16015286601757825753",
     accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
     verifyApiKey: "THIS HAS NOT BEEN SET",
@@ -34,7 +34,7 @@ const networks = {
   },
   fuji: {
     url: process.env.AVALANCHE_FUJI_RPC_URL || "THIS HAS NOT BEEN SET",
-    router: "0x554472a2720e5e7d5d3c817529aba05eed5f82d8",
+    router: "0xF694E193200268f9a4868e4Aa017A0118C9a8177",
     chainSelector: "14767482510784806043",
     gasPrice: undefined,
     accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
