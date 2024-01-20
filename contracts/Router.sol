@@ -65,4 +65,17 @@ contract Router is IRouter, Ownable, ERC721 {
         require(address(vault) != address(0), "Vault not created!");
         vault.withdraw(payable(msg.sender), token, amount);
     }
+
+    function repay(
+        address borrower,
+        address vault,
+        uint256 amount
+    ) external;
+
+    function liquidate(
+        address borrower,
+        address vault,
+        uint256 amount,
+        address liquidator
+    ) external;
 }

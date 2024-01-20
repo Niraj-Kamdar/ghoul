@@ -9,4 +9,6 @@ interface IVault {
   function withdraw(address payable recipient, address token, uint256 amount) external;
 
   function borrow(address borrower, uint256 amount, uint64 destChainSelector) external returns (bytes32 messageId);
+
+  function getTotalDebtBase() external view returns (uint256);
 }
