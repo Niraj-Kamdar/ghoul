@@ -3,3 +3,4 @@
 exports.setupRouter = require('./01_setupRouter.js')
 exports.setupFacilitator = require('./02_setupFacilitator.js')
 exports.createVault = require("./03A_createVault.js")
+exports.lendVault = require('./03B_lendVault.js')
