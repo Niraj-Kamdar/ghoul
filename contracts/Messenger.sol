@@ -203,6 +203,7 @@ contract Messenger is CCIPReceiver {
         string calldata _text
     )
         external
+        payable
         onlyOwnerOrFactory
         onlyAllowlistedDestinationChain(_destinationChainSelector)
         returns (bytes32 messageId)
@@ -220,8 +221,8 @@ contract Messenger is CCIPReceiver {
         // Get the fee required to send the CCIP message
         uint256 fees = router.getFee(_destinationChainSelector, evm2AnyMessage);
 
-        if (fees > address(this).balance)
-            revert NotEnoughBalance(address(this).balance, fees);
+        if (fees > msg.value)
+            revert NotEnoughBalance(msg.value, fees);
 
         // Send the CCIP message through the router and store the returned CCIP message ID
         messageId = router.ccipSend{value: fees}(
