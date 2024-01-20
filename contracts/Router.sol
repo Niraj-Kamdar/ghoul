@@ -95,12 +95,7 @@ contract Router is IRouter, Messenger, ERC721 {
 
     }
 
-    function _ccipReceive(
-        Client.Any2EVMMessage memory any2EvmMessage
-    )
-        internal
-        override
-    {
+    function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
         messages[any2EvmMessage.messageId] = any2EvmMessage.data;
 
         uint8 operationType;
