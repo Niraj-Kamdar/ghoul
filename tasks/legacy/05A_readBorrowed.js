@@ -1,4 +1,4 @@
-const { networks } = require("../networks")
+const { networks } = require("../../networks")
 
 task("read-borrowed", "reads the borrowing balance for the borrower")
   .addParam("protocol", "address of Protocol.sol")

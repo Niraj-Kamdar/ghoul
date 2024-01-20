@@ -1,4 +1,4 @@
-const { networks } = require("../networks")
+const { networks } = require("../../networks")
 
 task("transfer-token", "transfers token x-chain from Sender.sol to Protocol.sol")
   .addParam("sender", "address of Sender.sol")

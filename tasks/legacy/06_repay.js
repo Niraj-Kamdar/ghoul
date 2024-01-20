@@ -1,4 +1,4 @@
-const { networks } = require("../networks")
+const { networks } = require("../../networks")
 
 task("repay", "repays the Mock USDC")
   .addParam("protocol", "address of Protocol.sol")

@@ -14,9 +14,10 @@ contract VaultFactory is IVaultFactory, Ownable {
     Messenger messenger;
     address facilitator;
 
-    constructor(address _pool) Ownable(msg.sender) {
+    constructor(address _pool, address _link) {
       pool = _pool;
-      messenger = new Messenger();
+      // TODO: set messenger constructor params
+      messenger = new Messenger(address(0), msg.sender, address(0), _link);
     }
 
     function updateGhoulFacilitator(address _facilitator) onlyOwner public {
@@ -34,13 +35,13 @@ contract VaultFactory is IVaultFactory, Ownable {
         return userVaults[msg.sender];
     }
 
-    function sendBorrowMessage(uint64 destinationChainSelector, address staker, address token, uint256 amount) public returns (bytes32 messageId) {
-      require(facilitator, "facilitator not defined!");
-
-      string memory data = Encoder.encode(staker, token, amount);
-      bytes32 messageId = messenger.sendMessagePayLINK(destinationChainSelector, facilitator, data);
-      require(messageId, "Message not sent!");
-
-      return messageId;
-    }
+//    function sendBorrowMessage(uint64 destinationChainSelector, address staker, address token, uint256 amount) public returns (bytes32 messageId) {
+//      require(facilitator != address(0), "facilitator not defined!");
+//
+//      string memory data = Encoder.encode(staker, token, amount);
+//      bytes32 messageId = messenger.sendMessagePayLINK(destinationChainSelector, facilitator, data);
+//      require(messageId != bytes32(0), "Message not sent!");
+//
+//      return messageId;
+//    }
 }

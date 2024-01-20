@@ -4,7 +4,7 @@ pragma solidity 0.8.19;
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
-import {IERC20} from "@chainlink/contracts-ccip/src/v0.8/vendor/openzeppelin-solidity/v4.8.0/contracts/token/ERC20/IERC20.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Encoder} from "./lib/Encoder.sol";
 
 /**
@@ -67,9 +67,9 @@ contract Messenger is CCIPReceiver {
     /// @param _router The address of the router contract.
     /// @param _link The address of the link contract.
     constructor(address _factory, address _owner, address _router, address _link) CCIPReceiver(_router) {
-        s_linkToken = IERC20(_link);
         factory = _factory;
         owner = _owner;
+        s_linkToken = IERC20(_link);
     }
 
     modifier onlyOwner {
@@ -129,11 +129,10 @@ contract Messenger is CCIPReceiver {
         allowlistedSenders[_sender] = allowed;
     }
 
-    function sendBorrowMessage(uint64 destinationChainSelector, address receiver, uint8 operationType, address borrower, address vault, uint256 amount, address liquidator) public returns (bytes32 messageId) {
+    function sendBorrowMessage(uint64 destinationChainSelector, address receiver, uint8 operationType, address borrower, address vault, uint256 amount, address liquidator) public payable returns (bytes32 messageId) {
       string memory data = Encoder.encode(operationType, borrower, vault, amount, liquidator);
-      bytes32 messageId = messenger.sendMessagePayLINK(destinationChainSelector, receiver, data);
-      require(messageId, "Message not sent!");
-
+      bytes32 messageId = this.sendMessagePayNative(destinationChainSelector, receiver, data);
+      require(messageId != bytes32(0), "Message not sent!");
       return messageId;
     }
 
@@ -147,7 +146,7 @@ contract Messenger is CCIPReceiver {
     function sendMessagePayLINK(
         uint64 _destinationChainSelector,
         address _receiver,
-        string calldata _text
+        string memory _text
     )
         external
         onlyOwnerOrFactory
@@ -200,7 +199,7 @@ contract Messenger is CCIPReceiver {
     function sendMessagePayNative(
         uint64 _destinationChainSelector,
         address _receiver,
-        string calldata _text
+        string memory _text
     )
         external
         payable
@@ -247,17 +246,22 @@ contract Messenger is CCIPReceiver {
     function getNativeSendFees(
         uint64 destinationChainSelector,
         address receiver,
-        string calldata _text
+        string memory _text
     ) public view returns (uint256 fees, Client.EVM2AnyMessage memory message) {
         message = _buildCCIPMessage(receiver, _text, address(0));
         fees = IRouterClient(this.getRouter()).getFee(destinationChainSelector, message);
         return (fees, message);
     }
 
+    function getNativeBorrowMessageFees(uint64 destinationChainSelector, address receiver, uint8 operationType, address borrower, address vault, uint256 amount, address liquidator) public view returns (uint256 fees, Client.EVM2AnyMessage memory message) {
+        string memory data = Encoder.encode(operationType, borrower, vault, amount, liquidator);
+        return getNativeSendFees(destinationChainSelector, receiver, data);
+    }
+
     function getLinkSendFees(
         uint64 destinationChainSelector,
         address receiver,
-        string calldata _text
+        string memory _text
     ) public view returns (uint256 fees, Client.EVM2AnyMessage memory message) {
         message = _buildCCIPMessage(receiver, _text, address(s_linkToken));
         fees = IRouterClient(this.getRouter()).getFee(destinationChainSelector, message);
@@ -305,7 +309,7 @@ contract Messenger is CCIPReceiver {
     /// @return Client.EVM2AnyMessage Returns an EVM2AnyMessage struct which contains information for sending a CCIP message.
     function _buildCCIPMessage(
         address _receiver,
-        string calldata _text,
+        string memory _text,
         address _feeTokenAddress
     ) internal pure returns (Client.EVM2AnyMessage memory) {
         // Create an EVM2AnyMessage struct in memory with necessary information for sending a cross-chain message
@@ -316,7 +320,7 @@ contract Messenger is CCIPReceiver {
                 tokenAmounts: new Client.EVMTokenAmount[](0), // Empty array aas no tokens are transferred
                 extraArgs: Client._argsToBytes(
                     // Additional arguments, setting gas limit
-                    Client.EVMExtraArgsV1({gasLimit: 200_000})
+                    Client.EVMExtraArgsV1({gasLimit: 200_000, strict: false})
                 ),
                 // Set the feeToken to a feeTokenAddress, indicating specific asset will be used for fees
                 feeToken: _feeTokenAddress

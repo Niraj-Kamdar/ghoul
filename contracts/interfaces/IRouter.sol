@@ -1,3 +1,5 @@
+import "./IVault.sol";
+
 interface IRouter {
     event VaultCreated(address indexed user, address vault);
 

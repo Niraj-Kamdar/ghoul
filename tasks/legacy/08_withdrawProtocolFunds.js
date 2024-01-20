@@ -1,4 +1,4 @@
-const { networks } = require("../networks")
+const { networks } = require("../../networks")
 
 task("withdraw-protocol-funds", "withdraw ETH and LINK from Protocol.sol")
   .addParam("address", "Sender.sol contract address")

@@ -1,4 +1,4 @@
-const { networks } = require("../networks")
+const { networks } = require("../../networks")
 
 task("setup-protocol", "deploy Protocol.sol").setAction(async (taskArgs, hre) => {
   if (network.name === "hardhat") {

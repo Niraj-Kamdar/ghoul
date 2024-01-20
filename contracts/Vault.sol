@@ -45,12 +45,12 @@ contract Vault is IVault {
     // Update the total Debt
     _totalDebtBase += (amount / 10 ** 10);
     // Check if position under collateralized after update
-    require(_isUndercollateralized(_totalCollateralBase, _ltv, _totalDebtBase) == false, "UnderCollateralized: Borrow cancelled");
+    require(_isUndercollateralized(_totalCollateralBase, _ltv) == false, "UnderCollateralized: Borrow cancelled");
 
     // Send CCIP mint GHO message
   }
 
-  function _isUndercollateralized(uint256 totalCollateralBase, uint256 ltv, uint256 totalDebtBase) internal view returns (bool) {
+  function _isUndercollateralized(uint256 totalCollateralBase, uint256 ltv) internal view returns (bool) {
     return (totalCollateralBase * 10000) < (totalDebtBase * ltv);
   }
 }
