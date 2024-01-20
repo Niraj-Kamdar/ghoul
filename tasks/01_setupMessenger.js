@@ -1,5 +1,5 @@
 const { networks } = require("../networks")
-const { fs } = require('fs')
+const fs = require('fs')
 
 task("setup-messenger", "deploy Messenger.sol").setAction(async (taskArgs, hre) => {
   if (network.name === "hardhat") {
@@ -22,17 +22,27 @@ task("setup-messenger", "deploy Messenger.sol").setAction(async (taskArgs, hre) 
   console.log("\n__Compiling Contracts__")
   await run("compile")
 
-  console.log(`\nDeploying Encoder.sol to ${network.name}...`)
-  const encoderFactory = await ethers.getContractFactory("Encoder")
-  const encoderContract = await encoderFactory.deploy()
-  await encoderContract.deployTransaction.wait(1)
+  let deployments = undefined
+  const deploymentsPath = `contractDeployments/deployments_${network.name}.json`
+  if (fs.existsSync(deploymentsPath)) {
+    const deploymentsStr = fs.readFileSync(`contractDeployments/deployments_${network.name}.json`, 'utf-8')
+    deployments = JSON.parse(deploymentsStr);
+  }
 
-  console.log(`\nEncoder contract is deployed to ${network.name} at ${encoderContract.address}`)
+  let encoderAddress = deployments?.encoder
+  if (!encoderAddress) {
+    console.log(`\nDeploying Encoder.sol to ${network.name}...`)
+    const encoderFactory = await ethers.getContractFactory("Encoder")
+    const encoderContract = await encoderFactory.deploy()
+    await encoderContract.deployTransaction.wait(1)
+    encoderAddress = encoderContract.address
+    console.log(`\nEncoder contract is deployed to ${network.name} at ${encoderContract.address}`)
+  }
 
   console.log(`\nDeploying Messenger.sol to ${network.name}...`)
   const messengerFactory = await ethers.getContractFactory("Messenger", {
     libraries: {
-      Encoder: encoderContract.address,
+      Encoder: encoderAddress,
     },
   })
   const messengerContract = await messengerFactory.deploy(FACTORY, owner, ROUTER, LINK)
@@ -44,7 +54,7 @@ task("setup-messenger", "deploy Messenger.sol").setAction(async (taskArgs, hre) 
     `contractDeployments/deployments_${network.name}.json`,
     JSON.stringify({
       messenger: messengerContract.address,
-      encoder: encoderContract.address
+      encoder: encoderAddress
     }, null, 2),
     'utf-8'
   )
