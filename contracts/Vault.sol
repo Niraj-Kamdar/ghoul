@@ -3,15 +3,13 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@aave/core-v3/contracts/interfaces/IPool.sol";
-import "./interfaces/IVaultFactory.sol";
 import "./interfaces/IVault.sol";
+import "./interfaces/IRouter.sol";
 import "./Messenger.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Vault is IVault, Ownable {
-  uint64 public destChainSelector = 12532609583862916517;
-
-  IVaultFactory public factory;
+  IRouter public router;
   IPool public pool;
   Messenger public messenger;
   address public facilitator;
@@ -19,8 +17,8 @@ contract Vault is IVault, Ownable {
 
   uint256 public totalDebtBase = 0; // 8 decimal total borrowed gho
 
-  constructor(address _factory, address _pool, Messenger _messenger, address _facilitator, address _liquidator) {
-    factory = IVaultFactory(_factory);
+  constructor(address _router, address _pool, Messenger _messenger, address _facilitator, address _liquidator) {
+    router = IRouter(_router);
     pool = IPool(_pool);
     messenger = _messenger;
     facilitator = _facilitator;
@@ -39,7 +37,7 @@ contract Vault is IVault, Ownable {
     emit Withdrawn(token, amount);
   }
 
-  function borrow(address borrower, uint256 amount) onlyOwner public returns (bytes32 messageId) {
+  function borrow(address borrower, uint256 amount, uint64 destChainSelector) onlyOwner public returns (bytes32 messageId) {
     uint256 _totalCollateralBase;
     uint256 _totalDebtBase;
     uint256 _availableBorrowsBase;

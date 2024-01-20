@@ -54,10 +54,10 @@ contract Router is IRouter, Ownable, ERC721 {
         return userVaults[msg.sender][vaultId];
     }
 
-    function borrow(uint256 vaultId, uint256 amount) public returns (bytes32 messageId) {
+    function borrow(uint256 vaultId, uint256 amount, uint64 destChainSelector) public returns (bytes32 messageId) {
       IVault vault = userVaults[msg.sender][vaultId];
       require(address(vault) != address(0), "Vault not created!");
-      return vault.borrow(msg.sender, amount);
+      return vault.borrow(msg.sender, amount, destChainSelector);
     }
 
     function withdraw(uint256 vaultId, address token, uint256 amount) public {
