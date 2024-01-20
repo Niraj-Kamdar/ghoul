@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.19;
+pragma solidity ^0.8.0;
 
 import {IRouterClient} from "@chainlink/contracts-ccip/src/v0.8/ccip/interfaces/IRouterClient.sol";
 import {OwnerIsCreator} from "@chainlink/contracts-ccip/src/v0.8/shared/access/OwnerIsCreator.sol";
 import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 import {CCIPReceiver} from "./ccip/CCIPReceiver.sol";
-// import {CCIPReceiver} from "@chainlink/contracts-ccip/src/v0.8/ccip/applications/CCIPReceiver.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 /**
@@ -121,37 +120,6 @@ abstract contract Messenger is CCIPReceiver, OwnerIsCreator {
         return messageId;
     }
 
-    // /// handle a received message
-    // function _ccipReceive(
-    //     Client.Any2EVMMessage memory any2EvmMessage
-    // )
-    //     internal
-    //     override
-    // {
-    //     s_lastReceivedMessageId = any2EvmMessage.messageId; // fetch the messageId
-    //     s_lastReceivedText = any2EvmMessage.data;
-
-    //     uint8 operationType;
-    //     address borrower;
-    //     address vault;
-    //     uint256 amount;
-    //     address liquidator;
-
-    //     (operationType, borrower, vault, amount, liquidator) = abi.decode(any2EvmMessage.data, (uint8, address, address, uint256, address));
-
-    //     emit MessageReceived(
-    //         any2EvmMessage.messageId,
-    //         any2EvmMessage.sourceChainSelector, // fetch the source chain identifier (aka selector)
-    //         abi.decode(any2EvmMessage.sender, (address)), // abi-decoding of the sender address,
-    //         operationType,
-    //         borrower,
-    //         vault,
-    //         amount,
-    //         liquidator
-    //     );
-
-    // }
-
     function _buildCCIPMessage(
         address _receiver,
         address _feeTokenAddress,
@@ -178,14 +146,6 @@ abstract contract Messenger is CCIPReceiver, OwnerIsCreator {
                 feeToken: _feeTokenAddress
             });
     }
-
-    // function getLastReceivedMessageDetails()
-    //     external
-    //     view
-    //     returns (bytes32 messageId, bytes memory text)
-    // {
-    //     return (s_lastReceivedMessageId, s_lastReceivedText);
-    // }
 
     /// @notice Fallback function to allow the contract to receive Ether.
     /// @dev This function has no function body, making it a default function for receiving Ether.

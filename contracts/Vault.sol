@@ -9,14 +9,6 @@ import "./Messenger.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Vault is IVault, Ownable {
-  IRouter public router;
-
-  uint256 public totalDebtBase = 0; // 8 decimal total borrowed gho
-
-  constructor(address _router) {
-    router = IRouter(_router);
-  }
-
   function withdraw(address payable recipient, address token, uint256 amount) onlyOwner public {
     if (token == address(0)) {
       require(address(this).balance >= amount, "Insufficient balance");
@@ -26,10 +18,6 @@ contract Vault is IVault, Ownable {
       require(erc20.balanceOf(address(this)) >= amount, "Insufficient balance");
       erc20.transfer(recipient, amount);
     }
-    emit Withdrawn(token, amount);
-  }
-
-  function getTotalDebtBase() external view returns (uint256) {
-    return totalDebtBase;
+    emit Withdrawn(recipient, token, amount);
   }
 }

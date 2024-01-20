@@ -1,26 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./Vault.sol";
-import "./interfaces/IRouter.sol";
-import "./interfaces/IVault.sol";
-import "./Messenger.sol";
-import "./lib/Encoder.sol";
+import "@aave/core-v3/contracts/interfaces/IPool.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-// import {CCIPReceiver} from "./ccip/CCIPReceiver.sol";
+import {Vault} from "./Vault.sol";
+import {IRouter} from "./interfaces/IRouter.sol";
+import {IVault} from  "./interfaces/IVault.sol";
+import {Messenger} from "./Messenger.sol";
+import {CCIPReceiver} from "./ccip/CCIPReceiver.sol";
+import {Client} from "@chainlink/contracts-ccip/src/v0.8/ccip/libraries/Client.sol";
 
-contract Router is IRouter, Messenger, ERC721 {
 
-    // user -> vault token id -> vault
-    mapping(address => mapping(address => IVault)) public userVaults;
-
+contract Router is Messenger, ERC721 {
     IPool public pool;
     address public facilitator;
     uint64 public destChainSelector;
 
     mapping (bytes32 => bytes) public messages;
+
+    // Vault => GHO debts
+    mapping (address => uint256) public debts;
 
     constructor(uint64 _destChainSelector, address _pool, address _router, address _link) ERC721("GhoulRouter", "GHOUL") Messenger(_router, _link)  {
       pool = IPool(_pool);
@@ -41,65 +42,60 @@ contract Router is IRouter, Messenger, ERC721 {
     }
 
     function createVault() public {
-        Vault newVault = new Vault(address(this));
-        address vaultId = address(newVault);
-        require(address(userVaults[msg.sender][vaultId]) == address(0), "Vault already exists");
-        userVaults[msg.sender][vaultId] = newVault;
-        _safeMint(msg.sender, uint256(uint160(vaultId)));
-        emit VaultCreated(msg.sender, vaultId);
+        Vault vault = new Vault();
+        uint256 vaultId = uint256(uint160(address(vault)));
+
+        _safeMint(msg.sender, vaultId);
     }
 
-    function getVault(address vault) public view returns (IVault) {
-        return userVaults[msg.sender][vault];
+    modifier onlyVaultOwner(address _vault) {
+        uint256 vaultId = uint256(uint160(_vault));
+        require(_isApprovedOrOwner(_msgSender(), vaultId), "ERC721: caller is not token owner nor approved");
+        _;
     }
 
-    function withdraw(address _vault, address token, uint256 amount) public {
-        IVault vault = userVaults[msg.sender][_vault];
-        require(address(vault) != address(0), "Vault not created!");
-        vault.withdraw(payable(msg.sender), token, amount);
+    function withdraw(address _vault, address token, uint256 amount) public onlyVaultOwner(_vault) {
+        IVault vault = IVault(_vault);
+        vault.withdraw(payable(_msgSender()), token, amount);
+    }
+
+    function getVaultData(address _vault) public view returns(uint256 totalCollateralBase, uint256 totalDebtBase, uint256 ltv) {
+      uint256 _totalDebtBase;
+      uint256 _availableBorrowsBase;
+      uint256 _currentLiquidationThreshold;
+      uint256 _healthFactor;
+
+      (totalCollateralBase, _totalDebtBase, _availableBorrowsBase, _currentLiquidationThreshold, ltv, _healthFactor) = pool.getUserAccountData(_vault);
+      totalDebtBase = debts[_vault] / (10 ** 10);
+    }
+
+    modifier onlyOverCollateralized(address _vault) {
+      uint256 _totalCollateralBase;
+      uint256 _totalDebtBase;
+      uint256 _ltv;
+      (_totalCollateralBase, _totalDebtBase, _ltv) = getVaultData(_vault);
+      require((_totalCollateralBase * 10000) < (_totalDebtBase * _ltv), "UnderCollateralized");
+      _;
     }
 
     function initBorrow(
       address _vault,
       uint256 _amount
-    ) external {
-      address _borrower = msg.sender;
-      IVault vault = userVaults[_borrower][_vault];
-      require(address(vault) != address(0), "Vault not created!");
-      uint256 totalDebtBase = vault.getTotalDebtBase();
+    ) external onlyVaultOwner(_vault) onlyOverCollateralized(_vault) {
+      address _borrower = _msgSender();
 
-      uint256 _totalCollateralBase;
-      uint256 _totalDebtBase;
-      uint256 _availableBorrowsBase;
-      uint256 _currentLiquidationThreshold;
-      uint256 _ltv;
-      uint256 _healthFactor;
-
-      (_totalCollateralBase, _totalDebtBase, _availableBorrowsBase, _currentLiquidationThreshold, _ltv, _healthFactor) = pool.getUserAccountData(_vault);
-
-      require((_totalCollateralBase * 10000) < (totalDebtBase * _ltv), "UnderCollateralized");
+      // Change debt for the Vault
+      debts[_vault] += _amount;
 
       sendMessagePayLINK(destChainSelector, facilitator, BORROW, _borrower, _vault, _amount, address(0));
     }
 
-    // function initRepay(
-    //   address _vault,
-    //   uint256 _amount
-    // ) external {
-    //   // Make sure msg.sender is owner of Vault
-    //   address _borrower = msg.sender;
-
-    //   IVault vault = IVault(_vault);
-    //   uint256 totalDebtBase = vault.getTotalDebtBase();
-
-    //   require(amount )
-
-    //   sendMessagePayLINK(destinationChainSelector, facilitator, REPAY, _borrower, _vault, _amount, address(0));
-    // }
-
-    function _repay(address _borrower, address _vault, uint256 _amount) internal {
-        // Change the base debt! make sure it's converted to 8 decimals instead of default 18 decimals (divide by 10)
-
+    function _repay(address _vault, uint256 _amount) internal {
+        // If repaid amount is greater than debt; reset debt to zero
+        if(debts[_vault] < _amount) {
+          debts[_vault] = 0;
+        }
+        debts[_vault] -= _amount;
     }
 
     function _ccipReceive(Client.Any2EVMMessage memory any2EvmMessage) internal override {
@@ -125,34 +121,7 @@ contract Router is IRouter, Messenger, ERC721 {
         );
 
         if (operationType == REPAY) {
-            _repay(borrower, vault, amount);
+            _repay(vault, amount);
         }
-    }
-
-    // function liquidate(
-    //   address borrower,
-    //   address vault,
-    //   uint256 amount,
-    //   address liquidator
-    // ) external;
-
-    function transferFrom(address from, address to, uint256 tokenId) public override {
-        //solhint-disable-next-line max-line-length
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
-        _transferVault(from, to, tokenId);
-        _transfer(from, to, tokenId);
-    }
-
-    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public override {
-        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
-        _transferVault(from, to, tokenId);
-        _safeTransfer(from, to, tokenId, data);
-    }
-
-    function _transferVault(address from, address to, uint256 tokenId) internal {
-        address vaultAddress = address(uint160(tokenId));
-        IVault vault = userVaults[from][vaultAddress];
-        userVaults[to][vaultAddress] = vault;
-        userVaults[from][vaultAddress] = IVault(address(0));
     }
 }
