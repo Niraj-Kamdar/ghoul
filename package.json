@@ -46,7 +46,10 @@
   },
   "dependencies": {
     "@aave/core-v3": "^1.18.0",
-    "@aave/gho": "github:aave/gho-core",
+    "@aave/aave-token": "^1.0.4",
+    "@aave/deploy-v3": "^1.55.3",
+    "@aave/periphery-v3": "^2.0.1",
+    "@aave/safety-module": "^1.0.3",
     "@chainlink/contracts-ccip": "^0.7.3",
     "@chainlink/env-enc": "^1.0.5",
     "@openzeppelin/contracts": "^4.8.3",

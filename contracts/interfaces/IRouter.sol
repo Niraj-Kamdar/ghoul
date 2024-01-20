@@ -5,5 +5,5 @@ interface IRouter {
 
     function createVault() external;
 
-    function getVault(uint256 vaultId) external view returns (IVault);
+    function getVault(address vault) external view returns (IVault);
 }

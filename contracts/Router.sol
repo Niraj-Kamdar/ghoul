@@ -20,10 +20,9 @@ contract Router is IRouter, Messenger, ERC721 {
 
     mapping (bytes32 => bytes) public messages;
 
-    constructor(address _pool, address _facilitator, address _liquidator, address _router, address _link) ERC721("GhoulRouter", "GHOUL") Messenger(_router, _link)  {
+    constructor(uint64 _destChainSelector, address _pool, address _router, address _link) ERC721("GhoulRouter", "GHOUL") Messenger(_router, _link)  {
       pool = IPool(_pool);
-      facilitator = _facilitator;
-      destinationChainSelector = _destinationChainSelector;
+      destChainSelector = _destChainSelector;
     }
 
     function supportsInterface(bytes4 interfaceId) public pure override(CCIPReceiver, ERC721) returns (bool) {
@@ -77,7 +76,7 @@ contract Router is IRouter, Messenger, ERC721 {
 
       require((_totalCollateralBase * 10000) < (totalDebtBase * _ltv), "UnderCollateralized");
 
-      sendMessagePayLINK(destinationChainSelector, facilitator, BORROW, _borrower, _vault, _amount, address(0));
+      sendMessagePayLINK(destChainSelector, facilitator, BORROW, _borrower, _vault, _amount, address(0));
     }
 
     // function initRepay(

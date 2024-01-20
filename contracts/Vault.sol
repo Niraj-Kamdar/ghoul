@@ -28,4 +28,8 @@ contract Vault is IVault, Ownable {
     }
     emit Withdrawn(token, amount);
   }
+
+  function getTotalDebtBase() external view returns (uint256) {
+    return totalDebtBase;
+  }
 }
