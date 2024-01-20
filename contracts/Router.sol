@@ -9,6 +9,8 @@ import "./lib/Encoder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
+// import {CCIPReceiver} from "./ccip/CCIPReceiver.sol";
+
 contract Router is IRouter, Messenger, ERC721 {
 
     // user -> vault token id -> vault
@@ -23,6 +25,11 @@ contract Router is IRouter, Messenger, ERC721 {
     constructor(uint64 _destChainSelector, address _pool, address _router, address _link) ERC721("GhoulRouter", "GHOUL") Messenger(_router, _link)  {
       pool = IPool(_pool);
       destChainSelector = _destChainSelector;
+    }
+
+
+    function supportsInterface(bytes4 interfaceId) public virtual view override(CCIPReceiver, ERC721) returns (bool) {
+        return CCIPReceiver.supportsInterface(interfaceId) || ERC721.supportsInterface(interfaceId);
     }
 
     function updateGhoulFacilitator(address _facilitator) onlyOwner public {
