@@ -128,4 +128,27 @@ contract Router is IRouter, Messenger, ERC721 {
     //   uint256 amount,
     //   address liquidator
     // ) external;
+
+    function transferFrom(address from, address to, uint256 tokenId) public override {
+        //solhint-disable-next-line max-line-length
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+
+        address vaultAddress = address(uint160(tokenId));
+        IVault vault = userVaults[from][vaultAddress];
+        userVaults[to][vaultAddress] = vault;
+        userVaults[from][vaultAddress] = IVault(address(0));
+
+        _transfer(from, to, tokenId);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public override {
+        require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721: caller is not token owner or approved");
+
+        address vaultAddress = address(uint160(tokenId));
+        IVault vault = userVaults[from][vaultAddress];
+        userVaults[to][vaultAddress] = vault;
+        userVaults[from][vaultAddress] = IVault(address(0));
+
+        _safeTransfer(from, to, tokenId, data);
+    }
 }
