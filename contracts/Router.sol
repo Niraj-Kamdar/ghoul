@@ -46,7 +46,7 @@ contract Router is IRouter, Ownable, ERC721 {
         nextVaultId++;
         require(address(userVaults[msg.sender][vaultId]) == address(0), "Vault already exists");
         userVaults[msg.sender][vaultId] = newVault;
-        this._safeMint(msg.sender, vaultId);
+        _safeMint(msg.sender, vaultId);
         emit VaultCreated(msg.sender, vaultId, address(newVault));
     }
 
@@ -60,9 +60,46 @@ contract Router is IRouter, Ownable, ERC721 {
       return vault.borrow(msg.sender, amount);
     }
 
-    function withdraw(uint256 vaultId, address token, uint256 amount) public returns (bytes32 messageId) {
+    function withdraw(uint256 vaultId, address token, uint256 amount) public {
         IVault vault = userVaults[msg.sender][vaultId];
         require(address(vault) != address(0), "Vault not created!");
-        return vault.withdraw(msg.sender, token, amount);
+        vault.withdraw(payable(msg.sender), token, amount);
     }
+
+
+//    function _safeMint(address to, uint256 tokenId) internal {
+//        _safeMint(to, tokenId, "");
+//    }
+//
+//    function _safeMint(address to, uint256 tokenId, bytes memory data) internal {
+//        _mint(to, tokenId);
+//        require(
+//            _checkOnERC721Received(address(0), to, tokenId, data),
+//            "ERC721: transfer to non ERC721Receiver implementer"
+//        );
+//    }
+//
+//    function _mint(address to, uint256 tokenId) internal {
+//        require(to != address(0), "ERC721: mint to the zero address");
+//        require(!_exists(tokenId), "ERC721: token already minted");
+//
+//        _beforeTokenTransfer(address(0), to, tokenId, 1);
+//
+//        // Check that tokenId was not minted by `_beforeTokenTransfer` hook
+//        require(!_exists(tokenId), "ERC721: token already minted");
+//
+//        unchecked {
+//        // Will not overflow unless all 2**256 token ids are minted to the same owner.
+//        // Given that tokens are minted one by one, it is impossible in practice that
+//        // this ever happens. Might change if we allow batch minting.
+//        // The ERC fails to describe this case.
+//            _balances[to] += 1;
+//        }
+//
+//        _owners[tokenId] = to;
+//
+//        emit Transfer(address(0), to, tokenId);
+//
+//        _afterTokenTransfer(address(0), to, tokenId, 1);
+//    }
 }
