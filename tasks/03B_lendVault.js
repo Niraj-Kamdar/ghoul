@@ -26,7 +26,7 @@ task("lend-vault", "create vault and send aToken")
     await aTokenTx.wait(1)
 
     const juelsBalance = await aTokenTokenContract.balanceOf(vault)
-    const aTokenBalance = ethers.utils.formatEther(juelsBalance.toString(), decimals)
+    const aTokenBalance = ethers.utils.formatUnits(juelsBalance.toString(), decimals)
     console.log(`\nFunded ${vault} with ${aTokenBalance} aToken`)
   }
 )

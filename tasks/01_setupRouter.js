@@ -24,12 +24,12 @@ task("setup-router", "deploy Router.sol").setAction(async (taskArgs, hre) => {
   console.log("\n__Compiling Contracts__")
   await run("compile")
 
-  console.log(`\nDeploying Protocol.sol to ${network.name}...`)
+  console.log(`\nDeploying Router.sol to ${network.name}...`)
   const routerFactory = await ethers.getContractFactory("Router")
   const routerContract = await routerFactory.deploy(destinationChainSelector,aavePool, ROUTER, LINK)
   await routerContract.deployTransaction.wait(1)
 
-  console.log(`\nProtocol contract is deployed to ${network.name} at ${routerContract.address}`)
+  console.log(`\nRouter contract is deployed to ${network.name} at ${routerContract.address}`)
 
   const [deployer] = await ethers.getSigners()
   // const routerContract = {address: "0x4e0F8DE6F290FC5C7571A2DE1dca2B0Ae684ed91"}
