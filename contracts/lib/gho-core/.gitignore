@@ -1,0 +1,16 @@
+/cache
+/out
+/artifacts
+/.env
+/node_modules
+
+/deployments
+/types
+
+/coverage
+/coverage.json
+
+/temp-artifacts
+/src/contracts/hardhat-dependency-compiler
+
+.DS_Store
