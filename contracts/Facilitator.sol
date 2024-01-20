@@ -36,10 +36,9 @@ contract Facilitator is Messenger {
         s_ghoToken.mint(_borrower, _amount);
     }
 
-    function _repay(address _borrower, address _vault, uint256 _amount) internal {
+    function repay(address _borrower, address _vault, uint256 _amount) external {
         s_ghoToken.transferFrom(_borrower, address(0), _amount);  // Burn tokens
         
-        // send repayment ack
         sendMessagePayLINK(destinationChainSelector, ghoulRouter, REPAY, _borrower, _vault, _amount, address(0));
     }
 
@@ -84,10 +83,6 @@ contract Facilitator is Messenger {
 
         if (operationType == BORROW) {
             _borrow(borrower, amount);
-        }
-
-        if (operationType == REPAY) {
-            _repay(borrower, vault, amount);
         }
     }
 }
