@@ -9,23 +9,21 @@ import "./lib/Encoder.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract Router is IRouter, Ownable, ERC721 {
+contract Router is IRouter, Messenger, ERC721 {
 
     // user -> vault token id -> vault
-    mapping(address => mapping(uint256 => IVault)) public userVaults;
+    mapping(address => mapping(address => IVault)) public userVaults;
 
-    uint256 public nextVaultId = 1;
-
-    address public pool;
+    IPool public pool;
     address public facilitator;
-    address public liquidator;
-    Messenger public messenger;
+    uint64 public destChainSelector;
 
-    constructor(address _pool, address _facilitator, address _liquidator, address _router, address _link) ERC721("GhoulRouter", "GHOUL") {
-      pool = _pool;
+    mapping (bytes32 => bytes) public messages;
+
+    constructor(address _pool, address _facilitator, address _liquidator, address _router, address _link) ERC721("GhoulRouter", "GHOUL") Messenger(_router, _link)  {
+      pool = IPool(_pool);
       facilitator = _facilitator;
-      liquidator = _liquidator;
-      messenger = new Messenger(address(this), msg.sender, _router, _link);
+      destinationChainSelector = _destinationChainSelector;
     }
 
     function supportsInterface(bytes4 interfaceId) public pure override(CCIPReceiver, ERC721) returns (bool) {
@@ -36,36 +34,25 @@ contract Router is IRouter, Ownable, ERC721 {
       facilitator = _facilitator;
     }
 
-    function updateGhoulLiquidator(address _liquidator) onlyOwner public {
-      liquidator = _liquidator;
-    }
-
     function updateGhoulPool(address _pool) onlyOwner public {
-      pool = _pool;
+      pool = IPool(_pool);
     }
 
     function createVault() public {
-        Vault newVault = new Vault(address(this), pool, messenger, facilitator, liquidator);
-        uint256 vaultId = nextVaultId;
-        nextVaultId++;
+        Vault newVault = new Vault(address(this));
+        address vaultId = address(newVault);
         require(address(userVaults[msg.sender][vaultId]) == address(0), "Vault already exists");
         userVaults[msg.sender][vaultId] = newVault;
-        _safeMint(msg.sender, vaultId);
-        emit VaultCreated(msg.sender, vaultId, address(newVault));
+        _safeMint(msg.sender, uint256(uint160(vaultId)));
+        emit VaultCreated(msg.sender, vaultId);
     }
 
-    function getVault(uint256 vaultId) public view returns (IVault) {
-        return userVaults[msg.sender][vaultId];
+    function getVault(address vault) public view returns (IVault) {
+        return userVaults[msg.sender][vault];
     }
 
-    function borrow(uint256 vaultId, uint256 amount, uint64 destChainSelector) public returns (bytes32 messageId) {
-        IVault vault = userVaults[msg.sender][vaultId];
-        require(address(vault) != address(0), "Vault not created!");
-        return vault.borrow(msg.sender, amount, destChainSelector);
-    }
-
-    function withdraw(uint256 vaultId, address token, uint256 amount) public {
-        IVault vault = userVaults[msg.sender][vaultId];
+    function withdraw(address _vault, address token, uint256 amount) public {
+        IVault vault = userVaults[msg.sender][_vault];
         require(address(vault) != address(0), "Vault not created!");
         vault.withdraw(payable(msg.sender), token, amount);
     }
@@ -74,10 +61,9 @@ contract Router is IRouter, Ownable, ERC721 {
       address _vault,
       uint256 _amount
     ) external {
-      // Make sure msg.sender is owner of Vault
       address _borrower = msg.sender;
-
-      IVault vault = IVault(_vault);
+      IVault vault = userVaults[_borrower][_vault];
+      require(address(vault) != address(0), "Vault not created!");
       uint256 totalDebtBase = vault.getTotalDebtBase();
 
       uint256 _totalCollateralBase;
