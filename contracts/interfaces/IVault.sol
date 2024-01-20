@@ -8,5 +8,5 @@ interface IVault {
 
   function withdraw(address token, uint256 amount) external;
 
-  function borrow(uint256 amount) external;
+  function borrow(uint256 amount) external returns (bytes32 messageId);
 }

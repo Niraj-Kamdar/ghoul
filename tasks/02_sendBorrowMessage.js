@@ -20,8 +20,8 @@ task("send-borrow-message", "send a message from Messenger.sol on Fuji")
     const destChainSelector = networks[destChain].chainSelector
     const sender = (await ethers.getSigners())[0].address
 
-      const deploymentsStr = fs.readFileSync(`contractDeployments/deployments_${network.name}.json`, 'utf-8')
-      const deployments = JSON.parse(deploymentsStr);
+    const deploymentsStr = fs.readFileSync(`contractDeployments/deployments_${network.name}.json`, 'utf-8')
+    const deployments = JSON.parse(deploymentsStr);
 
     const messengerFactory = await ethers.getContractFactory("Messenger", {
         libraries: {
