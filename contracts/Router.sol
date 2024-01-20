@@ -74,7 +74,7 @@ contract Router is Messenger, ERC721 {
       uint256 _totalDebtBase;
       uint256 _ltv;
       (_totalCollateralBase, _totalDebtBase, _ltv) = getVaultData(_vault);
-      require((_totalCollateralBase * 10000) < (_totalDebtBase * _ltv), "UnderCollateralized");
+      require(!((_totalCollateralBase * 10000) < (_totalDebtBase * _ltv)), "UnderCollateralized");
       _;
     }
 
