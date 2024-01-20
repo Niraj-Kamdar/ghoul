@@ -6,7 +6,7 @@ interface IVault {
   event Deposited(uint256 amount);
   event Withdrawn(address token, uint256 amount);
 
-  function withdraw(address token, uint256 amount) external;
+  function withdraw(address payable recipient, address token, uint256 amount) external;
 
-  function borrow(uint256 amount) external returns (bytes32 messageId);
+  function borrow(address borrower, uint256 amount) external returns (bytes32 messageId);
 }

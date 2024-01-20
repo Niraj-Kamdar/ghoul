@@ -11,15 +11,17 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract Router is IRouter, Ownable, ERC721 {
 
-    // user -> vaultAddress -> vault
-    mapping(address => mapping(address => IVault)) public userVaults;
+    // user -> vault token id -> vault
+    mapping(address => mapping(uint256 => IVault)) public userVaults;
 
-    public address pool;
-    public address facilitator;
-    public address liquidator;
-    public Messenger messenger;
+    uint256 public nextVaultId = 1;
 
-    constructor(address _pool, address _facilitator, address _liquidator, address _router, address _link) {
+    address public pool;
+    address public facilitator;
+    address public liquidator;
+    Messenger public messenger;
+
+    constructor(address _pool, address _facilitator, address _liquidator, address _router, address _link) ERC721("GhoulRouter", "GHOUL") {
       pool = _pool;
       facilitator = _facilitator;
       liquidator = _liquidator;
@@ -30,21 +32,37 @@ contract Router is IRouter, Ownable, ERC721 {
       facilitator = _facilitator;
     }
 
-    function createVault() public {
-        require(address(userVaults[msg.sender]) == address(0), "Vault already exists");
-        Vault newVault = new Vault(pool, messenger, facilitator, liquidator);
-        newVault.transferOwnership(msg.sender);
-        userVaults[msg.sender].push(newVault);
-        emit VaultCreated(msg.sender, address(newVault));
+    function updateGhoulLiquidator(address _liquidator) onlyOwner public {
+      liquidator = _liquidator;
     }
 
-    function getVault(uint256 index) public view returns (IVault) {
-        return userVaults[msg.sender][index];
+    function updateGhoulPool(address _pool) onlyOwner public {
+      pool = _pool;
+    }
+
+    function createVault() public {
+        Vault newVault = new Vault(address(this), pool, messenger, facilitator, liquidator);
+        uint256 vaultId = nextVaultId;
+        nextVaultId++;
+        require(address(userVaults[msg.sender][vaultId]) == address(0), "Vault already exists");
+        userVaults[msg.sender][vaultId] = newVault;
+        this._safeMint(msg.sender, vaultId);
+        emit VaultCreated(msg.sender, vaultId, address(newVault));
+    }
+
+    function getVault(uint256 vaultId) public view returns (IVault) {
+        return userVaults[msg.sender][vaultId];
     }
 
     function borrow(uint256 vaultId, uint256 amount) public returns (bytes32 messageId) {
-      IVault memory vault = userVaults[msg.sender];
-      require(vault.address != address(0), "Vault not created!");
-      return vault.borrow(amount);
+      IVault vault = userVaults[msg.sender][vaultId];
+      require(address(vault) != address(0), "Vault not created!");
+      return vault.borrow(msg.sender, amount);
+    }
+
+    function withdraw(uint256 vaultId, address token, uint256 amount) public returns (bytes32 messageId) {
+        IVault vault = userVaults[msg.sender][vaultId];
+        require(address(vault) != address(0), "Vault not created!");
+        return vault.withdraw(msg.sender, token, amount);
     }
 }

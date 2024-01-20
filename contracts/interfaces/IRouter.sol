@@ -1,11 +1,11 @@
 import "./IVault.sol";
 
 interface IRouter {
-    event VaultCreated(address indexed user, address vault);
+    event VaultCreated(address indexed user, uint256 vaultId, address vault);
 
     function createVault() external;
 
-    function getVault() external view returns (IVault);
+    function getVault(uint256 vaultId) external view returns (IVault);
 
     // function listVaults() 
 

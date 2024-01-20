@@ -9,7 +9,7 @@ import "./Messenger.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract Vault is IVault, Ownable {
-  uint256 public destChainSelector = 12532609583862916517;
+  uint64 public destChainSelector = 12532609583862916517;
 
   IVaultFactory public factory;
   IPool public pool;
@@ -19,23 +19,27 @@ contract Vault is IVault, Ownable {
 
   uint256 public totalDebtBase = 0; // 8 decimal total borrowed gho
 
-  constructor(address _pool, Messenger _messenger, address _facilitator, address _liquidator) {
+  constructor(address _factory, address _pool, Messenger _messenger, address _facilitator, address _liquidator) {
+    factory = IVaultFactory(_factory);
     pool = IPool(_pool);
     messenger = _messenger;
     facilitator = _facilitator;
     liquidator = _liquidator;
   }
 
-  function withdraw(address token, uint256 amount) onlyOwner public {
+  function withdraw(address payable recipient, address token, uint256 amount) onlyOwner public {
     if (token == address(0)) {
-      require(msg.sender.transfer(amount), "Transfer failed");
+      require(address(this).balance >= amount, "Insufficient balance");
+      recipient.transfer(amount);
     } else {
-      require(IERC20(token).transfer(msg.sender, amount), "Transfer failed");
+      IERC20 erc20 = IERC20(token);
+      require(erc20.balanceOf(address(this)) >= amount, "Insufficient balance");
+      erc20.transfer(recipient, amount);
     }
     emit Withdrawn(token, amount);
   }
 
-  function borrow(uint256 amount) onlyOwner public returns (bytes32 messageId) {
+  function borrow(address borrower, uint256 amount) onlyOwner public returns (bytes32 messageId) {
     uint256 _totalCollateralBase;
     uint256 _totalDebtBase;
     uint256 _availableBorrowsBase;
@@ -50,7 +54,7 @@ contract Vault is IVault, Ownable {
       _currentLiquidationThreshold,
       _ltv,
       _healthFactor
-    ) = pool.getUserAccountData(msg.sender);
+    ) = pool.getUserAccountData(borrower);
 
     // Update the total Debt
     totalDebtBase += (amount / 10 ** 10);
@@ -62,7 +66,7 @@ contract Vault is IVault, Ownable {
       destChainSelector,
       facilitator,
       0,
-      msg.sender,
+      borrower,
       address(this),
       amount,
       liquidator
