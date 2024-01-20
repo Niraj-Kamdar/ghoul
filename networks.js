@@ -27,6 +27,7 @@ const networks = {
     accounts: PRIVATE_KEY !== undefined ? [PRIVATE_KEY] : [],
     verifyApiKey: "THIS HAS NOT BEEN SET",
     chainId: 11155111,
+    aavePool: "0x6Ae43d3271ff6888e7Fc43Fd7321a503ff738951",
     confirmations: DEFAULT_VERIFICATION_BLOCK_CONFIRMATIONS,
     nativeCurrencySymbol: "ETH",
     linkToken: "0x779877A7B0D9E8603169DdbD7836e478b4624789",
