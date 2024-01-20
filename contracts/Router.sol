@@ -25,10 +25,6 @@ contract Router is IRouter, Messenger, ERC721 {
       destChainSelector = _destChainSelector;
     }
 
-    function supportsInterface(bytes4 interfaceId) public pure override(CCIPReceiver, ERC721) returns (bool) {
-        return CCIPReceiver.supportsInterface(interfaceId) || ERC721.supportsInterface(interfaceId);
-    }
-
     function updateGhoulFacilitator(address _facilitator) onlyOwner public {
       facilitator = _facilitator;
     }
