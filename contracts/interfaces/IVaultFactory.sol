@@ -4,7 +4,6 @@ import "./IVault.sol";
 
 
 interface IVaultFactory {
-
     event VaultCreated(address indexed user, address vault);
 
     function createVault() external;

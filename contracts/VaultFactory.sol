@@ -11,16 +11,16 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract VaultFactory is IVaultFactory, Ownable {
     mapping(address => Vault) public userVaults;
     address pool;
-    Messanger messanger; 
+    Messenger messenger;
     address facilitator;
 
     constructor(address _pool) Ownable(msg.sender) {
       pool = _pool;
-      messanger = new Messanger();
+      messenger = new Messenger();
     }
 
     function updateGhoulFacilitator(address _facilitator) onlyOwner public {
-      facilitator = _facilitator
+      facilitator = _facilitator;
     }
 
     function createVault() public {
@@ -38,7 +38,7 @@ contract VaultFactory is IVaultFactory, Ownable {
       require(facilitator, "facilitator not defined!");
 
       string memory data = Encoder.encode(staker, token, amount);
-      bytes32 messageId = messanger.sendMessagePayLINK(destinationChainSelector, facilitator, data);
+      bytes32 messageId = messenger.sendMessagePayLINK(destinationChainSelector, facilitator, data);
       require(messageId, "Message not sent!");
 
       return messageId;

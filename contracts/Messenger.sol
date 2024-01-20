@@ -44,6 +44,8 @@ contract Messenger is CCIPReceiver {
         string text // The text that was received.
     );
 
+    event DecodedMessage(uint8 operationType, address borrower, address vault, uint256 amount, address liquidator);
+
     bytes32 private s_lastReceivedMessageId; // Store the last received messageId.
     string private s_lastReceivedText; // Store the last received text.
 
@@ -129,7 +131,7 @@ contract Messenger is CCIPReceiver {
 
     function sendBorrowMessage(uint64 destinationChainSelector, address receiver, uint8 operationType, address borrower, address vault, uint256 amount, address liquidator) public returns (bytes32 messageId) {
       string memory data = Encoder.encode(operationType, borrower, vault, amount, liquidator);
-      bytes32 messageId = messanger.sendMessagePayLINK(destinationChainSelector, receiver, data);
+      bytes32 messageId = messenger.sendMessagePayLINK(destinationChainSelector, receiver, data);
       require(messageId, "Message not sent!");
 
       return messageId;
@@ -241,8 +243,6 @@ contract Messenger is CCIPReceiver {
         return messageId;
     }
 
-    event DecodedMessage(uint8 operationType, address borrower, address vault, uint256 amount, address liquidator);
-
     /// handle a received message
     function _ccipReceive(
         Client.Any2EVMMessage memory any2EvmMessage
@@ -261,19 +261,19 @@ contract Messenger is CCIPReceiver {
             any2EvmMessage.messageId,
             any2EvmMessage.sourceChainSelector, // fetch the source chain identifier (aka selector)
             abi.decode(any2EvmMessage.sender, (address)), // abi-decoding of the sender address,
-            abi.decode(any2EvmMessage.data, (string))
+            s_lastReceivedText
         );
 
         uint8 operationType;
         address borrower;
         address vault;
         uint256 amount;
-        address liquidator; 
+        address liquidator;
 
         (operationType, borrower, vault, amount, liquidator) = Encoder.decode(any2EvmMessage.data);
 
         emit DecodedMessage(operationType, borrower, vault, amount, liquidator);
-
+        // TODO: handle received message
     }
 
     /// @notice Construct a CCIP message.
@@ -291,7 +291,7 @@ contract Messenger is CCIPReceiver {
         return
             Client.EVM2AnyMessage({
                 receiver: abi.encode(_receiver), // ABI-encoded receiver address
-                data: abi.encode(_text), // ABI-encoded string
+                data: bytes(_text), // ABI-encoded string
                 tokenAmounts: new Client.EVMTokenAmount[](0), // Empty array aas no tokens are transferred
                 extraArgs: Client._argsToBytes(
                     // Additional arguments, setting gas limit
