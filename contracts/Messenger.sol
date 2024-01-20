@@ -243,6 +243,26 @@ contract Messenger is CCIPReceiver {
         return messageId;
     }
 
+    function getNativeSendFees(
+        uint64 destinationChainSelector,
+        address receiver,
+        string calldata _text
+    ) public view returns (uint256 fees, Client.EVM2AnyMessage memory message) {
+        message = _buildCCIPMessage(receiver, _text, address(0));
+        fees = IRouterClient(this.getRouter()).getFee(destinationChainSelector, message);
+        return (fees, message);
+    }
+
+    function getLinkSendFees(
+        uint64 destinationChainSelector,
+        address receiver,
+        string calldata _text
+    ) public view returns (uint256 fees, Client.EVM2AnyMessage memory message) {
+        message = _buildCCIPMessage(receiver, _text, address(s_linkToken));
+        fees = IRouterClient(this.getRouter()).getFee(destinationChainSelector, message);
+        return (fees, message);
+    }
+
     /// handle a received message
     function _ccipReceive(
         Client.Any2EVMMessage memory any2EvmMessage
