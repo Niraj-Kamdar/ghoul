@@ -46,6 +46,7 @@ On the source chain Fuji (where `Router.sol` is deployed you need):
 
 - LINK tokens (learn how to get them for each chain [here](https://docs.chain.link/resources/link-token-contracts))
 - a little Fuji AVAX (go [here](https://faucets.chain.link/fuji))
+- a little AAVE aToken (go [here](https://gho.aave.com/faucet/))
 
 On the destination chain chain Sepolia (where `Facilitator.sol` is deployed you need):
 
