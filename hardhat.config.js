@@ -2,11 +2,11 @@ require("@nomicfoundation/hardhat-toolbox")
 require("hardhat-contract-sizer")
 require("@openzeppelin/hardhat-upgrades")
 require("./tasks")
-require("@chainlink/env-enc").config()
+// require("@chainlink/env-enc").config()
 const { networks } = require("./networks")
 
 // Enable gas reporting (optional)
-const REPORT_GAS = process.env.REPORT_GAS?.toLowerCase() === "true" ? true : false
+const REPORT_GAS = process.env.REPORT_GAS?.toLowerCase() === "true"
 
 const SOLC_SETTINGS = {
   optimizer: {
@@ -34,6 +34,30 @@ module.exports = {
       },
       {
         version: "0.4.24",
+        settings: SOLC_SETTINGS,
+      },
+      {
+        version: "0.8.10",
+        settings: SOLC_SETTINGS,
+      },
+      {
+        version: "0.8.7",
+        settings: SOLC_SETTINGS,
+      },
+      {
+        version: "0.8.0",
+        settings: SOLC_SETTINGS,
+      },
+      {
+        version: "0.7.0",
+        settings: SOLC_SETTINGS,
+      },
+      {
+        version: "0.7.5",
+        settings: SOLC_SETTINGS,
+      },
+      {
+        version: "0.6.12",
         settings: SOLC_SETTINGS,
       },
     ],
