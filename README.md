@@ -1,6 +1,8 @@
 # Ghoul Finance
 Ghoul Finance: Revolutionizing DeFi with Cross-Chain Ledning-Borrowing and NFT-based Vaults.
 
+This repo is for the smart contracts and in-depth tutorial. For the GUI app showcasing the Ghoul Finance smart contracts, check out https://github.com/krisbitney/ghoul-app
+
 ### Description
 Ghoul Finance is an innovative DeFi protocol that leverages the idle liquidity across blockchains to create a dynamic borrowing and lending ecosystem. At its core, Ghoul Finance introduces a unique concept where each Vault, representing a user's portfolio of collateral and debt, is an NFT. This NFT-based approach enables the seamless transfer of financial positions between users. The protocol primarily operates across two chains - Sepolia and Fuji, utilizing Chainlink's CCIP for secure cross-chain communication. Borrowers can access liquidity by minting GHO tokens on Fuji, backed by assets in the AAVE pool on Sepolia. Additionally, Ghoul Finance incorporates mechanisms for repayment and liquidation, ensuring a balanced and secure financial environment.
 
