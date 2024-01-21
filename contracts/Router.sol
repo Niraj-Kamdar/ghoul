@@ -55,6 +55,7 @@ contract Router is Messenger, ERC721 {
     }
 
     function withdraw(address _vault, address token, uint256 amount) public onlyVaultOwner(_vault) {
+        require(debts[_vault] == 0, "Repay loan to withdraw position");
         IVault vault = IVault(_vault);
         vault.withdraw(payable(_msgSender()), token, amount);
     }

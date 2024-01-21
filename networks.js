@@ -45,6 +45,7 @@ const networks = {
     nativeCurrencySymbol: "AVAX",
     linkToken: "0x0b9d5D9136855f6FEc3c0993feE6E9CE8a297846",
     bnmToken: "0xd21341536c5cf5eb1bcb58f6723ce26e8d8e90e4",
+    ghoToken: "0xc7b331f1E6E548493758e00A715F7B256D710E70"
   },
   mumbai: {
     url: process.env.POLYGON_MUMBAI_RPC_URL || "THIS HAS NOT BEEN SET",

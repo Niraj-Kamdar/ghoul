@@ -8,17 +8,11 @@ task("setup-facilitator", "deploy Facilitator.sol").setAction(async (taskArgs, h
     throw Error("This task is intended to be executed on the Fuji network.")
   }
 
-  // const bnmToken = networks[network.name].bnmToken
-  // if (!bnmToken) {
-  //   throw Error("Missing BNM Token Address")
-  // }
-
   const ROUTER = networks[network.name].router
   const LINK = networks[network.name].linkToken
 
   const destinationChainSelector = networks["sepolia"].chainSelector
 
-  // const TOKEN_TRANSFER_AMOUNT = "0.0001"
   const LINK_AMOUNT = "0.5"
 
   console.log("\n__Compiling Contracts__")
@@ -62,24 +56,6 @@ task("setup-facilitator", "deploy Facilitator.sol").setAction(async (taskArgs, h
   await addFacilitatorTx2.wait(1)
 
   console.log(`\nFacilitator added ${deployer.address}`)
-
-
-  // // Fund with CCIP BnM Token
-  // console.log(`\nFunding ${faciliatorContract.address} with ${TOKEN_TRANSFER_AMOUNT} CCIP-BnM `)
-  // const bnmTokenContract = await ethers.getContractAt(
-  //   "ERC20",
-  //   bnmToken
-  // )
-
-  // const bnmTokenTx = await bnmTokenContract.transfer(
-  //   faciliatorContract.address,
-  //   ethers.utils.parseUnits(TOKEN_TRANSFER_AMOUNT)
-  // )
-  // await bnmTokenTx.wait(1)
-
-  // const bnmTokenBal_baseUnits = await bnmTokenContract.balanceOf(faciliatorContract.address)
-  // const bnmTokenBal = ethers.utils.formatUnits(bnmTokenBal_baseUnits.toString())
-  // console.log(`\nFunded ${faciliatorContract.address} with ${bnmTokenBal} CCIP-BnM`)
 
   // Fund with LINK
   console.log(`\nFunding ${faciliatorContract.address} with ${LINK_AMOUNT} LINK `)

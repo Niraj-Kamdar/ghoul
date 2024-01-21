@@ -8,11 +8,6 @@ task("setup-router", "deploy Router.sol").setAction(async (taskArgs, hre) => {
   if (network.name !== "sepolia") {
     throw Error("This task is intended to be executed on the Sepolia network.")
   }
-  
-  // const bnmToken = networks[network.name].bnmToken
-  // if (!bnmToken) {
-  //   throw Error("Missing BNM Token Address")
-  // }
 
   const ROUTER = networks[network.name].router
   const LINK = networks[network.name].linkToken
@@ -45,8 +40,4 @@ task("setup-router", "deploy Router.sol").setAction(async (taskArgs, hre) => {
   const juelsBalance = await linkTokenContract.balanceOf(routerContract.address)
   const linkBalance = ethers.utils.formatEther(juelsBalance.toString())
   console.log(`\nFunded ${routerContract.address} with ${linkBalance} LINK`)
-
-  // // Get the MockUSDC Contract address.
-  // const usdcToken = await routerContract.usdcToken()
-  // console.log(`\nMockUSDC contract is deployed to ${network.name} at ${usdcToken}`)
 })
